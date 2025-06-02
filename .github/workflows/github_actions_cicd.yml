@@ -13,9 +13,9 @@ on:
     branches: [ "main" ]
     
 jobs:
-  build:
+  compile:
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
     - uses: actions/checkout@v4
@@ -28,19 +28,26 @@ jobs:
     - name: Build with Maven
       run: mvn compile
 
-    - name: trivy installation 
-      run: |
-        sudo apt-get install wget apt-transport-https gnupg lsb-release
-        wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-        echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
-        sudo apt-get update -y
-        sudo apt-get install trivy -y 
+  
+     
+  security-check:
+    runs-on: self-hosted
+    needs: compile
+    steps:
 
-    - name: trivy fs scan
-      run: trivy fs --format table -o fs-report.json .
+     - name: trivy installation 
+       run: |
+         sudo apt-get install wget apt-transport-https gnupg lsb-release
+         wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+         echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+         sudo apt-get update -y
+         sudo apt-get install trivy -y 
 
-    - name: install gitleaks
-      run: sudo apt install gitleaks -y
+     - name: trivy fs scan
+       run: trivy fs --format table -o fs-report.json .
 
-    - name: gitleaks scanning 
-      run: gitleaks detect source . -r gitleaks-report.json -f json
+     - name: install gitleaks
+       run: sudo apt install gitleaks -y
+
+     - name: gitleaks scanning 
+       run: gitleaks detect source . -r gitleaks-report.json -f json
