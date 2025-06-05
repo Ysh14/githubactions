@@ -8,9 +8,9 @@
 
 name: Java CI with Maven
 
-on:
-  push:
-    branches: [ "main" ]
+on: workflow_dispatch
+  #push:
+    #branches: [ "main" ]
     
 jobs:
   compile:
